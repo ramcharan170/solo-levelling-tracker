@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Check, Plus, Trash2, ShieldAlert } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { getXpReward } from '@/lib/gameplay';
+import { syncProfileXp } from '@/lib/profile';
 
 interface Quest {
   id: string;
@@ -158,13 +159,7 @@ export default function QuestList({ userId, onXpChange }: QuestListProps) {
       const xpChange = nextStatus ? xpReward : -xpReward;
       const newXp = Math.max(0, (profile?.xp ?? 0) + xpChange);
 
-      // 3. Update user profile XP
-      const { error: profileUpdateError } = await supabase
-        .from('profiles')
-        .update({ xp: newXp })
-        .eq('id', userId);
-
-      if (profileUpdateError) throw profileUpdateError;
+      await syncProfileXp(supabase, userId, newXp);
 
       // Notify parent dashboard of XP change to trigger updates
       onXpChange(xpChange);
@@ -180,19 +175,29 @@ export default function QuestList({ userId, onXpChange }: QuestListProps) {
   };
 
   const handleDeleteQuest = async (questId: string) => {
-    if (savingQuestId) return;
-    setSavingQuestId(questId);
+  if (savingQuestId) return;
 
-    try {
-      const { error } = await supabase.from('quests').delete().eq('id', questId);
-      if (error) throw error;
-      setQuests((prev) => prev.filter((q) => q.id !== questId));
-    } catch (err) {
-      console.error('Failed to delete quest:', err);
-    } finally {
-      setSavingQuestId(null);
-    }
-  };
+  setSavingQuestId(questId);
+
+  try {
+    const { error } = await supabase
+      .from('quests')
+      .delete()
+      .eq('id', questId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+
+    setQuests((prev) => prev.filter((q) => q.id !== questId));
+
+    console.log('Quest deleted successfully');
+  } catch (err) {
+    console.error('Failed to delete quest:', err);
+    alert('Failed to delete quest. Check console for details.');
+  } finally {
+    setSavingQuestId(null);
+  }
+};
 
   const handleCreateQuest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -460,14 +465,16 @@ export default function QuestList({ userId, onXpChange }: QuestListProps) {
                 </span>
 
                 {/* Custom Quest Delete Trigger */}
-                {!quest.is_system && (
-                  <button
-                    onClick={() => handleDeleteQuest(quest.id)}
-                    className="p-1 text-system-muted hover:text-red-400 hover:bg-red-500/10 rounded transition-all cursor-pointer ml-1"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                )}
+                <button
+  onClick={() => {
+    if (confirm(`Delete quest "${quest.title}"?`)) {
+      handleDeleteQuest(quest.id);
+    }
+  }}
+  className="p-1 text-system-muted hover:text-red-400 hover:bg-red-500/10 rounded transition-all cursor-pointer ml-1"
+>
+  <Trash2 size={13} />
+</button>
               </div>
             </div>
           ))

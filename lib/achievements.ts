@@ -90,7 +90,10 @@ export async function unlockMissingAchievements(
     .select('code')
     .eq('user_id', userId);
 
-  if (fetchError) throw fetchError;
+  if (fetchError) {
+  console.error('FETCH ACHIEVEMENTS ERROR', fetchError);
+  throw fetchError;
+}
 
   const unlockedCodes = new Set((unlocked ?? []).map((row: { code: string }) => row.code));
   const missing = eligible.filter((achievement) => !unlockedCodes.has(achievement.code));
@@ -108,6 +111,9 @@ export async function unlockMissingAchievements(
     )
     .select('id, code, title, description, unlocked_at');
 
-  if (error) throw error;
+  if (error) {
+  console.error('INSERT ACHIEVEMENTS ERROR', error);
+  throw error;
+}
   return (data ?? []) as AchievementRecord[];
 }

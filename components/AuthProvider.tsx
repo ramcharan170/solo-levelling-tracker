@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
+import { touchProfileActivity } from '@/lib/profile';
 
 export interface Profile {
   id: string;
@@ -32,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const supabase = useMemo(() => createClient(), []);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, touchActivity = false) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -44,6 +45,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Error fetching profile:', error);
       } else {
         setProfile(data as Profile);
+        if (touchActivity) {
+          await touchProfileActivity(supabase, userId);
+        }
       }
     } catch (e) {
       console.error('Error in fetchProfile:', e);
@@ -75,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!isActive) return;
         setSession(currentSession);
         if (currentSession?.user?.id) {
-          await fetchProfile(currentSession.user.id);
+          await fetchProfile(currentSession.user.id, true);
         }
       } catch (error) {
         console.error('Error initializing auth session:', error);
@@ -94,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(newSession);
         if (newSession?.user?.id) {
           setLoading(true);
-          await fetchProfile(newSession.user.id);
+          await fetchProfile(newSession.user.id, event === 'SIGNED_IN');
           setLoading(false);
         } else {
           setProfile(null);

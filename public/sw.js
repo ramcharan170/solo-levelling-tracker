@@ -1,7 +1,9 @@
 const CACHE_NAME = 'hunter-system-cache-v1';
 const ASSETS_TO_CACHE = [
   '/',
-  '/manifest.json'
+  '/manifest.json',
+  '/icon-192x192.png',
+  '/icon-512x512.png',
 ];
 
 self.addEventListener('install', (event) => {

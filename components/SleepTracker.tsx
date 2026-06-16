@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Check, Moon, Terminal } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { getSleepXpBonus } from '@/lib/gameplay';
+import { syncProfileXp } from '@/lib/profile';
 
 interface SleepTrackerProps {
   userId: string;
@@ -67,11 +68,7 @@ export default function SleepTracker({ userId, onXpChange, onSleepLogged }: Slee
         .single();
       if (profileFetchError) throw profileFetchError;
 
-      const { error: profileUpdateError } = await supabase
-        .from('profiles')
-        .update({ xp: (profile?.xp ?? 0) + xp_bonus })
-        .eq('id', userId);
-      if (profileUpdateError) throw profileUpdateError;
+      await syncProfileXp(supabase, userId, (profile?.xp ?? 0) + xp_bonus);
 
       setTodayLog({ hours, xp_bonus });
       onXpChange(xp_bonus);
