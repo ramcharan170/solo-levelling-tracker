@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #05080d;
+    --foreground: #e2e8f0;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    overflow-x: hidden;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1a2332;
+    border: 1px solid #2a3f5f;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3b82f6;
+    border-color: #7dd3fc;
+  }
+}
+
+@layer utilities {
+  /* Scanning line border effect */
+  .hud-scanline {
+    position: relative;
+    overflow: hidden;
+  }
+  .hud-scanline::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #7dd3fc, #8b5cf6, #7dd3fc, transparent);
+    background-size: 200% 100%;
+    animation: scanline-anim 4s linear infinite;
+  }
+
+  @keyframes scanline-anim {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* Background Grid Overlay */
+  .hud-grid {
+    background-image: 
+      linear-gradient(rgba(125, 211, 252, 0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(125, 211, 252, 0.015) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(circle at 50% 50%, rgba(0,0,0,1) 0%, rgba(0,0,0,0.4) 75%, transparent 100%);
+  }
+
+  /* Glow Utilities */
+  .glow-cyan {
+    box-shadow: 0 0 15px rgba(125, 211, 252, 0.35);
+  }
+  .glow-purple {
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.35);
+  }
+  .glow-red {
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.35);
+  }
+
+  .achievement-pop {
+    animation: achievement-pop 0.7s ease-out;
+  }
+
+  .level-up-pulse {
+    animation: level-up-pulse 1.1s ease-in-out infinite alternate;
+  }
+
+  .rank-up-flare {
+    animation: rank-up-flare 1.4s ease-out infinite;
+  }
+
+  @keyframes achievement-pop {
+    0% {
+      transform: translateX(2rem) scale(0.96);
+    }
+    60% {
+      transform: translateX(0) scale(1.03);
+    }
+    100% {
+      transform: translateX(0) scale(1);
+    }
+  }
+
+  @keyframes level-up-pulse {
+    from {
+      box-shadow: 0 0 12px rgba(125, 211, 252, 0.35);
+    }
+    to {
+      box-shadow: 0 0 28px rgba(125, 211, 252, 0.75), 0 0 48px rgba(139, 92, 246, 0.25);
+    }
+  }
+
+  @keyframes rank-up-flare {
+    0% {
+      opacity: 0;
+      transform: scaleX(0);
+    }
+    40% {
+      opacity: 1;
+      transform: scaleX(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scaleX(1);
+    }
+  }
+}
