@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYSTEM // MONTHLY QUEST LOG</title>
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: #05080d;
+  color: #e2e8f0;
+  position: relative;
+}
+
+#bg-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.bg-glow {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(59,130,246,0.10) 0%, transparent 38%),
+    radial-gradient(circle at 82% 75%, rgba(125,211,252,0.08) 0%, transparent 38%);
+  animation: glowshift 14s ease-in-out infinite alternate;
+}
+
+@keyframes glowshift {
+  0% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+.bg-grid {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(59,130,246,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,130,246,0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(circle at 50% 40%, rgba(0,0,0,0.9) 0%, transparent 75%);
+}
+
+.scroll-frame {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  padding: 30px 16px 60px;
+}
+
+.scroll-frame::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scroll-frame::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-frame::-webkit-scrollbar-thumb {
+  background: #2a3f5f;
+  border-radius: 4px;
+}
+
+.scroll-frame::-webkit-scrollbar-thumb:hover {
+  background: #3b82f6;
+}
+
+.container {
+  max-width: 760px;
+  width: 100%;
+}
+
+/* ===== HEADER ===== */
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+  padding: 24px 16px;
+  background: #0a0e14;
+  border: 1px solid #2a3f5f;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6, #7dd3fc, #3b82f6);
+  animation: scanline 3s linear infinite;
+}
+
+@keyframes scanline {
+  0% { background-position: 0% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.system-tag {
+  color: #5a6b8c;
+  font-size: 12px;
+  letter-spacing: 3px;
+  margin-bottom: 8px;
+}
+
+.header h1 {
+  color: #7dd3fc;
+  font-size: 28px;
+  letter-spacing: 4px;
+  text-shadow: 0 0 12px rgba(125,211,252,0.5);
+  margin-bottom: 6px;
+}
+
+.header p {
+  color: #9fb3d1;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+/* ===== RANK / LEVEL DISPLAY ===== */
+.rank-section {
+  background: #0a0e14;
+  border: 1px solid #2a3f5f;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.rank-badge {
+  width: 70px;
+  height: 70px;
+  border: 2px solid #3b82f6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: bold;
+  color: #7dd3fc;
+  background: rgba(59,130,246,0.08);
+  text-shadow: 0 0 10px rgba(125,211,252,0.6);
+  transition: all 0.4s ease;
+  flex-shrink: 0;
+}
+
+.rank-info {
+  flex: 1;
+  min-width: 200px;
+}
+
+.rank-info .rank-title {
+  color: #7dd3fc;
+  font-size: 16px;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.rank-info .rank-desc {
+  color: #5a6b8c;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+/* ===== OVERALL PROGRESS ===== */
+.progress-section {
+  background: #0a0e14;
+  border: 1px solid #2a3f5f;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.progress-label span:first-child {
+  color: #7dd3fc;
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+
+.progress-label span:last-child {
+  color: #9fb3d1;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.progress-bar-outer {
+  background: #1a2332;
+  border: 1px solid #2a3f5f;
+  border-radius: 8px;
+  height: 18px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar-inner {
+  background: linear-gradient(90deg, #1d4ed8, #3b82f6, #7dd3fc);
+  height: 100%;
+  width: 0%;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 10px rgba(125,211,252,0.6);
+}
+
+.progress-percent {
+  text-align: center;
+  margin-top: 8px;
+  color: #5a6b8c;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+/* ===== DAY TRACKER ===== */
+.day-tracker {
+  background: #0a0e14;
+  border: 1px solid #2a3f5f;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.day-tracker-label {
+  color: #7dd3fc;
+  font-size: 13px;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.streak-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.streak-card {
+  flex: 1;
+  min-width: 130px;
+  background: #1a2332;
+  border: 1px solid #2a3f5f;
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.streak-card .streak-num {
+  font-size: 22px;
+  font-weight: bold;
+  color: #7dd3fc;
+  text-shadow: 0 0 8px rgba(125,211,252,0.5);
+}
+
+.streak-card .streak-label {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: #5a6b8c;
+  margin-top: 2px;
+}
+
+.day-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.day-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #1a2332;
+  border: 1px solid #2a3f5f;
+  border-radius: 6px;
+  padding: 8px 12px;
+  transition: all 0.25s ease;
+}
+
+.day-row.day-complete {
+  border-color: #3b82f6;
+  box-shadow: 0 0 6px rgba(59,130,246,0.25);
+}
+
+.day-num {
+  width: 42px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #9fb3d1;
+  flex-shrink: 0;
+}
+
+.day-toggles {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.day-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: #5a6b8c;
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #2a3f5f;
+  transition: all 0.2s ease;
+}
+
+.day-toggle:hover {
+  border-color: #3b82f6;
+}
+
+.day-toggle .toggle-box {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid #3b82f6;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: transparent;
+  flex-shrink: 0;
+}
+
+.day-toggle.active {
+  color: #7dd3fc;
+  border-color: #3b82f6;
+  background: rgba(59,130,246,0.1);
+}
+
+.day-toggle.active .toggle-box {
+  background: #3b82f6;
+  color: #0a0e14;
+}
+
+.day-toggle.jog.active {
+  color: #4ade80;
+  border-color: #166534;
+  background: rgba(34,197,94,0.1);
+}
+
+.day-toggle.jog.active .toggle-box {
+  background: #22c55e;
+  border-color: #22c55e;
+}
+
+/* ===== WEEK SECTIONS ===== */
+.week-section {
+  background: #0a0e14;
+  border: 1px solid #2a3f5f;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.week-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+
+.week-header h2 {
+  color: #7dd3fc;
+  font-size: 16px;
+  letter-spacing: 3px;
+}
+
+.week-header .week-status {
+  font-size: 11px;
+  color: #5a6b8c;
+  letter-spacing: 1px;
+}
+
+.week-subtitle {
+  color: #5a6b8c;
+  font-size: 11px;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+
+.week-progress-outer {
+  background: #1a2332;
+  border: 1px solid #2a3f5f;
+  border-radius: 6px;
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.week-progress-inner {
+  background: linear-gradient(90deg, #1d4ed8, #7dd3fc);
+  height: 100%;
+  width: 0%;
+  transition: width 0.4s ease;
+}
+
+.quest-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quest-item {
+  background: #1a2332;
+  border: 1px solid #2a3f5f;
+  border-left: 3px solid #3b82f6;
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.quest-item:hover {
+  border-color: #3b82f6;
+  transform: translateX(2px);
+}
+
+.quest-item.completed {
+  border-left-color: #22c55e;
+  opacity: 0.55;
+}
+
+.quest-item.completed .quest-text {
+  text-decoration: line-through;
+  color: #9fb3d1;
+}
+
+.quest-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #3b82f6;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: transparent;
+  transition: all 0.2s ease;
+}
+
+.quest-item.completed .quest-checkbox {
+  background: #22c55e;
+  border-color: #22c55e;
+  color: #0a0e14;
+}
+
+.quest-text {
+  flex: 1;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+}
+
+.quest-tag {
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tag-ai {
+  background: rgba(125,211,252,0.12);
+  color: #7dd3fc;
+  border: 1px solid #1e5a8a;
+}
+
+.tag-web {
+  background: rgba(34,197,94,0.12);
+  color: #4ade80;
+  border: 1px solid #166534;
+}
+
+.tag-tool {
+  background: rgba(245,158,11,0.12);
+  color: #fbbf24;
+  border: 1px solid #92600c;
+}
+
+/* ===== LEVEL UP TOAST ===== */
+.levelup-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  background: #0a0e14;
+  border: 2px solid #7dd3fc;
+  border-radius: 10px;
+  padding: 16px 32px;
+  text-align: center;
+  z-index: 999;
+  box-shadow: 0 0 30px rgba(125,211,252,0.5);
+  transition: transform 0.4s ease;
+}
+
+.levelup-toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+.levelup-toast .lu-title {
+  color: #7dd3fc;
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-shadow: 0 0 10px rgba(125,211,252,0.6);
+}
+
+.levelup-toast .lu-sub {
+  color: #5a6b8c;
+  font-size: 11px;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+/* ===== DAILY QUEST COMPLETE OVERLAY ===== */
+.quest-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(5,8,13,0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.quest-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.quest-overlay-box {
+  background: #0a0e14;
+  border: 2px solid #7dd3fc;
+  border-radius: 14px;
+  padding: 32px 48px;
+  text-align: center;
+  box-shadow: 0 0 50px rgba(125,211,252,0.55);
+  transform: scale(0.85);
+  transition: transform 0.4s ease;
+  max-width: 90%;
+}
+
+.quest-overlay.show .quest-overlay-box {
+  transform: scale(1);
+}
+
+.quest-overlay-tag {
+  color: #5a6b8c;
+  font-size: 11px;
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+}
+
+.quest-overlay-title {
+  color: #7dd3fc;
+  font-size: 26px;
+  letter-spacing: 5px;
+  text-shadow: 0 0 14px rgba(125,211,252,0.7);
+  margin-bottom: 10px;
+}
+
+.quest-overlay-sub {
+  color: #9fb3d1;
+  font-size: 13px;
+  letter-spacing: 1px;
+  line-height: 1.6;
+}
+
+.quest-overlay-line {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+  margin: 14px 0;
+}
+
+/* ===== FOOTER ===== */
+.footer {
+  text-align: center;
+  margin-top: 24px;
+  color: #2a3f5f;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+.reset-btn {
+  display: block;
+  margin: 16px auto 0;
+  background: #1a2332;
+  border: 1px solid #2a3f5f;
+  color: #5a6b8c;
+  font-size: 11px;
+  letter-spacing: 2px;
+  padding: 8px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reset-btn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+@media (max-width: 480px) {
+  .header h1 { font-size: 20px; letter-spacing: 2px; }
+  .rank-badge { width: 56px; height: 56px; font-size: 22px; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<canvas id="bg-canvas"></canvas>
+
+<div class="scroll-frame">
+
+<div class="levelup-toast" id="levelup-toast">
+  <div class="lu-title">LEVEL UP</div>
+  <div class="lu-sub" id="levelup-sub">RANK ADVANCED</div>
+</div>
+
+<div class="quest-overlay" id="quest-overlay">
+  <div class="quest-overlay-box">
+    <div class="quest-overlay-tag">[ SYSTEM NOTIFICATION ]</div>
+    <div class="quest-overlay-title">DAILY QUEST CLEARED</div>
+    <div class="quest-overlay-line"></div>
+    <div class="quest-overlay-sub" id="quest-overlay-day">Day 1 — Web dev session and jog completed.<br>A perfect day. The system acknowledges your discipline.</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="header">
+    <div class="system-tag">[ SYSTEM NOTIFICATION ]</div>
+    <h1>MONTHLY QUEST LOG</h1>
+    <p>A new path to power has been unlocked. Complete all quests to ascend.</p>
+  </div>
+
+  <div class="rank-section">
+    <div class="rank-badge" id="rank-badge">E</div>
+    <div class="rank-info">
+      <div class="rank-title" id="rank-title">RANK E — AWAKENING</div>
+      <div class="rank-desc" id="rank-desc">The weakest hunter. Every legend starts here. Begin your first quests to rise.</div>
+    </div>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-label">
+      <span>OVERALL QUEST PROGRESS</span>
+      <span id="overall-text">0 / 16</span>
+    </div>
+    <div class="progress-bar-outer">
+      <div class="progress-bar-inner" id="overall-fill"></div>
+    </div>
+    <div class="progress-percent" id="overall-percent">0% TO MAX RANK</div>
+  </div>
+
+  <div class="day-tracker">
+    <div class="day-tracker-label">[ 30-DAY TRAINING LOG — MARK YOUR DAILY GRIND ]</div>
+    <div class="streak-row">
+      <div class="streak-card">
+        <div class="streak-num" id="webdev-streak">0</div>
+        <div class="streak-label">WEB DEV STREAK</div>
+      </div>
+      <div class="streak-card">
+        <div class="streak-num" id="jog-streak">0</div>
+        <div class="streak-label">JOG STREAK</div>
+      </div>
+      <div class="streak-card">
+        <div class="streak-num" id="perfect-days">0</div>
+        <div class="streak-label">PERFECT DAYS</div>
+      </div>
+    </div>
+    <div class="day-list" id="day-list"></div>
+  </div>
+
+  <!-- WEEK 1 -->
+  <div class="week-section" data-week="1">
+    <div class="week-header">
+      <h2>WEEK 1 — THE AWAKENING</h2>
+      <span class="week-status" data-week-status="1">0 / 4 CLEARED</span>
+    </div>
+    <div class="week-subtitle">First steps into both worlds. Foundations of retrieval and the browser.</div>
+    <div class="week-progress-outer"><div class="week-progress-inner" data-week-bar="1"></div></div>
+    <ul class="quest-list">
+      <li class="quest-item"><div class="quest-checkbox"><i>✓</i></div><span class="quest-text">Semantic movie search</span><span class="quest-tag tag-ai">AI / RAG</span></li>
+      <li class="quest-item"><div class="quest-checkbox"><i>✓</i></div><span class="quest-text">Weather app</span><span class="quest-tag tag-web">WEB DEV</span></li>
+      <li class="quest-item"><div class="quest-checkbox"><i>✓</i></div><span class="quest-text">Chunk visualizer</span><span class="quest-tag tag-ai">AI / RAG</span></li>
+      <li class="quest-item"><div class="quest-checkbox"><i>✓</i></div><span class="quest-text">To-do app</span><span class="quest-tag tag-web">WEB DEV</span></li>
+    </ul>
+  </div>
+
+  <!-- WEEK 2 -->
+  <div class="week-section" data-week="2">
+    <div class="week-header">
+      <h2>WEEK 2 — RISING POWER</h2>
+      <span class="week-status" data-week-status="2">0 / 4 CLEARED</span>
+    </div>
+    <div class="week-subtitle">Real portfolio weapons forged. Backend systems take shape.</div>
+    <div class="week-progress-outer"><div class="week-progress-inner" data-week-bar="2"></div></div>
+    <ul class="quest-list">
+      <li class="quest-item"><div class="quest-checkbox"><i>✓</i></div><span class="quest-text">Resume Q&amp;A assistant</span><span class="quest-tag tag-ai">AI / RAG</span></li>
+      <li class="quest-item"><div class="quest-checkbox"><i>✓</i></div><span class="quest-text">Notes API</span><span class="quest-tag tag-web">WEB DEV</span></li>
+      <li class="quest-item"><div class="quest-checkbox"><i>✓</i></div><span class="quest-text">Student notes chatbot</span><span class="quest-tag tag-ai">AI / RAG</span></li>
+      <li class="quest-item"><div class="quest-checkbox"><i>✓</i></div><span class="quest-text">Expense tracker</span><span class="quest-tag tag-web">WEB DEV</span></li>
+    </ul>
+  </div>
+
+  <!-- WEEK 3 -->
+  <div class="week-section" data-week="3">
+    <div class="week-header">
+      <h2>WEEK 3 — THE GAUNTLET</h2>
+      <span class="week-status" data-week-status="3">0 / 4 CLEARED</span>
+    </div>
+    <div class="week-subtitle">Heaviest week of the trial. Authentication, transcripts, and full backends.</div>
+    <div class="week-progress-outer"><div class="week-progress-inner" data-week-bar="3"></div></div>
+    <ul class="quest-list">
+      <li class="quest-item"><div class="quest-checkbox"><i>✓</i></div><span class="quest-text">YouTube chatbot</span><span class="quest-tag tag-ai">AI / RAG</span></li>
+      <li class="quest-item"><div class="quest-checkbox"><i>✓</i></div><span class="quest-text">Authentication system</span><span class="quest-tag tag-web">WEB DEV</span></li>
+      <li class="quest-item"><div class="quest-checkbox"><i>✓</i></div><span class="quest-text">FAQ chatbot</span><span class="quest-tag tag-ai">AI / RAG</span></li>
+      <li class="quest-item"><div class="quest-checkbox"><i>✓</i></div><span class="quest-text">Blog backend</span><span class="quest-tag tag-web">WEB DEV</span></li>
+    </ul>
+  </div>
+
+  <!-- WEEK 4 -->
+  <div class="week-section" data-week="4">
+    <div class="week-header">
+      <h2>WEEK 4 — ASCENSION</h2>
+      <span class="week-status" data-week-status="4">0 / 4 CLEARED</span>
+    </div>
+    <div class="week-subtitle">Final boss week. Upgrade the core system and break into automation + deep learning.</div>
+    <div class="week-progress-outer"><div class="week-progress-inner" data-week-bar="4"></div></div>
+    <ul class="quest-list">
+      <li class="quest-item"><div class="quest-checkbox"><i>✓</i></div><span class="quest-text">Upgrade current RAG</span><span class="quest-tag tag-ai">AI / RAG</span></li>
+      <li class="quest-item"><div class="quest-checkbox"><i>✓</i></div><span class="quest-text">Chat application</span><span class="quest-tag tag-web">WEB DEV</span></li>
+      <li class="quest-item"><div class="quest-checkbox"><i>✓</i></div><span class="quest-text">Selenium automation project</span><span class="quest-tag tag-tool">AUTOMATION</span></li>
+      <li class="quest-item"><div class="quest-checkbox"><i>✓</i></div><span class="quest-text">MNIST classifier</span><span class="quest-tag tag-ai">AI / RAG</span></li>
+    </ul>
+  </div>
+
+  <button class="reset-btn" id="reset-btn">RESET ALL PROGRESS</button>
+
+  <div class="footer">— END OF QUEST LOG —</div>
+
+</div>
+
+</div>
+
+<script>
+const RANKS = [
+  { min: 0,  letter: "E", title: "RANK E — AWAKENING",   desc: "The weakest hunter. Every legend starts here. Begin your first quests to rise." },
+  { min: 4,  letter: "D", title: "RANK D — APPRENTICE",  desc: "The system has noticed you. Momentum is building — do not stop now." },
+  { min: 8,  letter: "C", title: "RANK C — CONTENDER",   desc: "Halfway through the trial. Your stats are climbing fast. Push harder." },
+  { min: 12, letter: "B", title: "RANK B — VETERAN",     desc: "Few make it this far. The final gauntlet awaits — finish strong." },
+  { min: 16, letter: "S", title: "RANK S — MONARCH",     desc: "ALL QUESTS CLEARED. You have ascended. A true Monarch of code stands before the system." }
+];
+
+function getRank(completed) {
+  let current = RANKS[0];
+  for (const r of RANKS) {
+    if (completed >= r.min) current = r;
+  }
+  return current;
+}
+
+function loadState() {
+  return JSON.parse(localStorage.getItem('questState')) || { quests: {}, webdev: {}, jog: {} };
+}
+
+function saveState(state) {
+  localStorage.setItem('questState', JSON.stringify(state));
+}
+
+let state = loadState();
+
+function showLevelUp(rank) {
+  const toast = document.getElementById('levelup-toast');
+  document.getElementById('levelup-sub').textContent = rank.title;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+function updateAll(triggerToast) {
+  const allQuests = document.querySelectorAll('.quest-item');
+  let totalCompleted = 0;
+
+  [1,2,3,4].forEach(weekNum => {
+    const weekQuests = document.querySelectorAll(`.week-section[data-week="${weekNum}"] .quest-item`);
+    let weekCompleted = 0;
+    weekQuests.forEach(q => { if (q.classList.contains('completed')) weekCompleted++; });
+    totalCompleted += weekCompleted;
+
+    document.querySelector(`[data-week-status="${weekNum}"]`).textContent = `${weekCompleted} / ${weekQuests.length} CLEARED`;
+    document.querySelector(`[data-week-bar="${weekNum}"]`).style.width = (weekQuests.length ? (weekCompleted / weekQuests.length) * 100 : 0) + '%';
+  });
+
+  const totalQuests = allQuests.length;
+  const percent = Math.round((totalCompleted / totalQuests) * 100);
+
+  document.getElementById('overall-text').textContent = `${totalCompleted} / ${totalQuests}`;
+  document.getElementById('overall-fill').style.width = percent + '%';
+  document.getElementById('overall-percent').textContent = percent === 100 ? 'MAX RANK ACHIEVED' : `${percent}% TO MAX RANK`;
+
+  const rank = getRank(totalCompleted);
+  const badge = document.getElementById('rank-badge');
+  const prevLetter = badge.textContent;
+
+  badge.textContent = rank.letter;
+  document.getElementById('rank-title').textContent = rank.title;
+  document.getElementById('rank-desc').textContent = rank.desc;
+
+  if (triggerToast && prevLetter !== rank.letter) {
+    showLevelUp(rank);
+  }
+}
+
+document.querySelectorAll('.week-section').forEach(week => {
+  const weekNum = week.getAttribute('data-week');
+  const quests = week.querySelectorAll('.quest-item');
+
+  quests.forEach((quest, idx) => {
+    const key = `w${weekNum}q${idx}`;
+    if (state.quests[key]) quest.classList.add('completed');
+
+    quest.addEventListener('click', () => {
+      quest.classList.toggle('completed');
+      state.quests[key] = quest.classList.contains('completed');
+      saveState(state);
+      updateAll(true);
+    });
+  });
+});
+
+const dayList = document.getElementById('day-list');
+
+function calcStreak(arr) {
+  let maxStreak = 0;
+  let current = 0;
+  for (let i = 1; i <= 30; i++) {
+    if (arr[i]) {
+      current++;
+      if (current > maxStreak) maxStreak = current;
+    } else {
+      current = 0;
+    }
+  }
+  return maxStreak;
+}
+
+function refreshStreaks() {
+  const webdev = state.webdev || {};
+  const jog = state.jog || {};
+  let perfect = 0;
+  for (let i = 1; i <= 30; i++) {
+    if (webdev[i] && jog[i]) perfect++;
+  }
+  document.getElementById('webdev-streak').textContent = calcStreak(webdev);
+  document.getElementById('jog-streak').textContent = calcStreak(jog);
+  document.getElementById('perfect-days').textContent = perfect;
+}
+
+function showDailyQuestComplete(dayNum) {
+  const overlay = document.getElementById('quest-overlay');
+  document.getElementById('quest-overlay-day').innerHTML =
+    `Day ${dayNum} — Web dev session and jog completed.<br>A perfect day. The system acknowledges your discipline.`;
+  overlay.classList.add('show');
+  setTimeout(() => overlay.classList.remove('show'), 2600);
+}
+
+state.webdev = state.webdev || {};
+state.jog = state.jog || {};
+
+for (let i = 1; i <= 30; i++) {
+  const row = document.createElement('div');
+  row.className = 'day-row';
+
+  const num = document.createElement('div');
+  num.className = 'day-num';
+  num.textContent = 'DAY ' + i;
+  row.appendChild(num);
+
+  const toggles = document.createElement('div');
+  toggles.className = 'day-toggles';
+
+  const webToggle = document.createElement('div');
+  webToggle.className = 'day-toggle';
+  webToggle.innerHTML = '<div class="toggle-box"><i>✓</i></div><span>WEB DEV SESSION</span>';
+  if (state.webdev[i]) webToggle.classList.add('active');
+
+  const jogToggle = document.createElement('div');
+  jogToggle.className = 'day-toggle jog';
+  jogToggle.innerHTML = '<div class="toggle-box"><i>✓</i></div><span>DAILY JOG</span>';
+  if (state.jog[i]) jogToggle.classList.add('active');
+
+  function updateRowState() {
+    if (webToggle.classList.contains('active') && jogToggle.classList.contains('active')) {
+      row.classList.add('day-complete');
+    } else {
+      row.classList.remove('day-complete');
+    }
+  }
+
+  webToggle.addEventListener('click', () => {
+    webToggle.classList.toggle('active');
+    state.webdev[i] = webToggle.classList.contains('active');
+    saveState(state);
+    updateRowState();
+    refreshStreaks();
+    if (webToggle.classList.contains('active') && jogToggle.classList.contains('active')) {
+      showDailyQuestComplete(i);
+    }
+  });
+
+  jogToggle.addEventListener('click', () => {
+    jogToggle.classList.toggle('active');
+    state.jog[i] = jogToggle.classList.contains('active');
+    saveState(state);
+    updateRowState();
+    refreshStreaks();
+    if (webToggle.classList.contains('active') && jogToggle.classList.contains('active')) {
+      showDailyQuestComplete(i);
+    }
+  });
+
+  toggles.appendChild(webToggle);
+  toggles.appendChild(jogToggle);
+  row.appendChild(toggles);
+  updateRowState();
+  dayList.appendChild(row);
+}
+
+refreshStreaks();
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (confirm('This will erase all quest progress and the attendance log. Continue?')) {
+    localStorage.removeItem('questState');
+    location.reload();
+  }
+});
+
+updateAll(false);
+
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+function initParticles() {
+  particles = [];
+  const count = Math.floor((canvas.width * canvas.height) / 22000);
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.6 + 0.4,
+      speed: Math.random() * 0.25 + 0.05,
+      drift: (Math.random() - 0.5) * 0.15,
+      opacity: Math.random() * 0.5 + 0.15,
+      pulse: Math.random() * Math.PI * 2
+    });
+  }
+}
+
+function animateParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (const p of particles) {
+    p.y -= p.speed;
+    p.x += p.drift;
+    p.pulse += 0.02;
+    if (p.y < -10) {
+      p.y = canvas.height + 10;
+      p.x = Math.random() * canvas.width;
+    }
+    if (p.x < -10) p.x = canvas.width + 10;
+    if (p.x > canvas.width + 10) p.x = -10;
+
+    const flicker = (Math.sin(p.pulse) + 1) / 2;
+    const alpha = p.opacity * (0.5 + flicker * 0.5);
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(125,211,252,${alpha})`;
+    ctx.shadowColor = 'rgba(125,211,252,0.8)';
+    ctx.shadowBlur = 4;
+    ctx.fill();
+  }
+  requestAnimationFrame(animateParticles);
+}
+
+resizeCanvas();
+initParticles();
+animateParticles();
+
+window.addEventListener('resize', () => {
+  resizeCanvas();
+  initParticles();
+});
+
+</script>
+
+</body>
+</html>
